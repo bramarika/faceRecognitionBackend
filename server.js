@@ -1,7 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt-nodejs');
+const cors = require('cors');
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 const database = {
     users:[
@@ -31,11 +34,11 @@ app.get('/', (req, resp) =>{
 
 app.post('/signin', (req, resp) => {
     if(req.body.email === database.users[0].email && req.body.password === database.users[0].password){
-        resp.json('success');
+        resp.json(database.users[0]);
     }else{
-        resp.status(400).json("error logging in");
+        //console.log("Error");
+        resp.status(400).json('error logging in');
     }
-    resp.json("Signin");
 })
 
 app.post('/register', (req, resp) => {
@@ -51,15 +54,49 @@ app.post('/register', (req, resp) => {
     resp.json(database.users[database.users.length - 1]);
 })
 
+app.get('/profile/:id', (req, resp) => {
+    const {id} = req.params;
+    let found = false;
+    database.users.forEach(user =>{
+        if(user.id === id){
+            found = true;
+            return resp.json(user);
+        } 
+    })
+    if(!found){
+        resp.status(400).json("Not found");
+    }
+})
+
+app.put('/image', (req, resp) => {
+    const {id} = req.body;
+    let found = false;
+    database.users.forEach(user =>{
+        if(user.id === id){
+            found = true;
+            user.entries++;
+            return resp.json(user.entries);
+        } 
+    })
+    if(!found){
+        resp.status(400).json("Not found");
+    }
+})
+
+/*bcrypt.hash("bacon", null, null, function(err, hash) {
+    // Store hash in your password DB.
+});
+
+// Load hash from your password DB.
+bcrypt.compare("bacon", hash, function(err, res) {
+    // res == true
+});
+bcrypt.compare("veggies", hash, function(err, res) {
+    // res = false
+});*/
+
+
 app.listen(3000, () => {
     console.log("App is running on port 3000");
 })
 
-/*
-/ --> res = this is working
-/signin --> POST  = success/fail
-/register --> POST = user obj
-/profile/:userid --> GET = user
-/image --> PUT = user
-
-*/
